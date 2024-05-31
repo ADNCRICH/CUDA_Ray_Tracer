@@ -14,9 +14,13 @@ __global__ void add_block_thread(int n, float *x, float *y) {
     for (int i = index; i < n; i += stride)
         y[i] += x[i];
 }
-
+// linux
 // nvcc add.cu -o ../bin/add_cu
 // nsys nvprof ../bin/add_cu && rm report*.nsys-rep && rm report*.sqlite
+
+// windows
+// nvcc add.cu -o ../bin/add_cu -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Tools\MSVC\14.29.30133\bin\Hostx64\x64\" -I "C:/Program Files/CodeBlocks/MinGW/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/x86_64-w64-mingw32" && del ..\bin\*.exp && del ..\bin\*.lib
+// nsys profile --stats=true ..\bin\add_cu.exe && del report*.nsys-rep && del report*.sqlite
 int main() {
     int N = 1 << 24;
 
