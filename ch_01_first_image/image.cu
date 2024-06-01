@@ -17,7 +17,7 @@ void check_cuda(cudaError_t result, char const *const func, const char *const fi
 __global__ void image(uint8_t *output, int X, int Y) {
     int x = blockDim.x * blockIdx.x + threadIdx.x;
     int y = blockDim.y * blockIdx.y + threadIdx.y;
-    if (x >= X | y >= Y) return;
+    if (x >= X | y >= Y) return;  // CUDA error 700 : cudaErrorIllegalAddres
     output[(y * X + x) * 3] = int(255.99 * float(x) / float(X));
     output[(y * X + x) * 3 + 1] = int(255.99 * float(Y - y - 1) / float(Y));
     output[(y * X + x) * 3 + 2] = int(255.99 * 0.2);
