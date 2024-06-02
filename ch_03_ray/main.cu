@@ -15,14 +15,19 @@ void check_cuda(cudaError_t result, char const *const func, const char *const fi
     }
 }
 
+template <typename com_t>
+__device__ vec3<com_t> color(ray<com_t> r) {
+    float t = (unit_vector(r.direction()).y() + 1) * 0.5;                              // (-inf, inf) -> (0, 1)
+    return ((1 - t) * vec3<com_t>(1, 1, 1) + t * vec3<com_t>(0.5, 0.7, 1)) * 255.99f;  // blend color white and blue
+}
+
 template <typename out_t, typename com_t>
 __global__ void color(vec3<out_t> *output, int X, int Y, vec3<com_t> lower_left_corner, vec3<com_t> horizontal, vec3<com_t> vertical, vec3<com_t> origin) {
     int x = blockDim.x * blockIdx.x + threadIdx.x, y = blockDim.y * blockIdx.y + threadIdx.y;
     if (x >= X || y >= Y) return;
     com_t u = float(x) / float(X), v = float(Y - y - 1) / float(Y);
     ray<float> r(origin, lower_left_corner + u * horizontal + v * vertical);
-    float t = (unit_vector(r.direction()).y() + 1) * 0.5;                                                   // (-inf, inf) -> (0, 1)
-    output[X * y + x] = (1 - t) * vec3<float>(1, 1, 1) * 255.99f + t * vec3<float>(0.5, 0.7, 1) * 255.99f;  // blend color white and blue
+    output[X * y + x] = color(r);
 }
 
 int main() {
