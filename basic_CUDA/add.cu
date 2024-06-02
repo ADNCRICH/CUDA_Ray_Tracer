@@ -10,8 +10,8 @@ __global__ void add_one_thread(int n, float *x, float *y) {
 
 __global__ void add_block_thread(int n, float *x, float *y) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-    int stride = blockDim.x * gridDim.x;  // gridDim.x is number of block defined by first number
-    for (int i = index; i < n; i += stride)
+    int stride = blockDim.x * gridDim.x;     // gridDim.x is number of block defined by first number
+    for (int i = index; i < n; i += stride)  // loop [factor] times
         y[i] += x[i];
 }
 // linux
@@ -23,6 +23,7 @@ __global__ void add_block_thread(int n, float *x, float *y) {
 // nsys profile --stats=true ..\bin\add_cu.exe && del report*.nsys-rep && del report*.sqlite
 int main() {
     int N = 1 << 24;
+    int factor = 1 << 3;
 
     float *x, *y;
     cudaMallocManaged(&x, N * sizeof(float));
@@ -34,8 +35,8 @@ int main() {
 
     add_one_thread<<<1, 256>>>(N, x, y);
 
-    int block_size = 256;                               // number of thread in each block
-    int num_block = (N + block_size - 1) / block_size;  // round up number of block to support all workload
+    int block_size = 256;                                        // number of thread in each block
+    int num_block = (N + block_size - 1) / block_size / factor;  // round up number of block to support all workload
 
     add_block_thread<<<num_block, block_size>>>(N, x, y);
 
@@ -43,7 +44,7 @@ int main() {
 
     float maxError = 0.0f;
     for (int i = 0; i < N; i++)
-        maxError = fmax(maxError, fabs(y[i] - 6.0f));
+        maxError = fmax(maxError, fabs(y[i] - 4.0f));
     cout << "Max error: " << maxError << "\n";
 
     cudaFree(x);
