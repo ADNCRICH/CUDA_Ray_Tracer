@@ -48,7 +48,7 @@ int main() {
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaDeviceSynchronize());
 
-    stbi_write_jpg("./image_cuda.jpg", nx, ny, 3, output, 100);
+    stbi_write_jpg("./background.jpg", nx, ny, 3, output, 100);
 
     checkCudaErrors(cudaFree(output));
 }
