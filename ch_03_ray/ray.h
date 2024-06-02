@@ -2,7 +2,7 @@
 #define RAYH
 #include <../ch_02_vector/vec3.h>
 
-template <typename T = float>
+template <typename T>
 class ray {
    public:
     __device__ ray() {}

@@ -15,6 +15,8 @@ void check_cuda(cudaError_t result, char const *const func, const char *const fi
     }
 }
 
+// sorry for my sucky english, but I'll try my best to explain this
+
 // sphere radius R, center at C
 // (x-xc) * (x-xc) + (y-yc) * (y-yc) + (z-zc) * (z-zc) = R*R, P = (x, y, z), C = (xc, yc, zc)
 // (P-C)•(P-C) = R*R
@@ -42,7 +44,7 @@ __device__ vec3<com_t> color(ray<com_t> r) {
 }
 
 template <typename out_t, typename com_t>
-__global__ void color(vec3<out_t> *output, int X, int Y, vec3<com_t> lower_left_corner, vec3<com_t> horizontal, vec3<com_t> vertical, vec3<com_t> origin) {
+__global__ void render(vec3<out_t> *output, int X, int Y, vec3<com_t> lower_left_corner, vec3<com_t> horizontal, vec3<com_t> vertical, vec3<com_t> origin) {
     int x = blockDim.x * blockIdx.x + threadIdx.x, y = blockDim.y * blockIdx.y + threadIdx.y;
     if (x >= X || y >= Y) return;
     com_t u = com_t(x) / com_t(X), v = com_t(Y - y - 1) / com_t(Y);
@@ -64,7 +66,7 @@ int main() {
     vec3<float> vertical(0, 2, 0);
     vec3<float> origin(0, 0, 0);
 
-    color<<<blocks, threads>>>(output, nx, ny, lower_left_corner, horizontal, vertical, origin);
+    render<<<blocks, threads>>>(output, nx, ny, lower_left_corner, horizontal, vertical, origin);
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaDeviceSynchronize());
 
