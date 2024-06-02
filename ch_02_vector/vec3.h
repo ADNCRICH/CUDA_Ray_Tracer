@@ -94,18 +94,38 @@ __host__ __device__ inline vec3<T> operator/(const vec3<T>& v1, const vec3<T>& v
 }
 
 template <typename T>
+__host__ __device__ inline vec3<T> operator+(T t, const vec3<T>& v) {
+    return vec3(t + v.e[0], t + v.e[1], t + v.e[2]);
+}
+
+template <typename T>
+__host__ __device__ inline vec3<T> operator+(const vec3<T>& v, T t) {
+    return vec3(t + v.e[0], t + v.e[1], t + v.e[2]);
+}
+
+template <typename T>
+__host__ __device__ inline vec3<T> operator-(T t, const vec3<T>& v) {
+    return vec3(t - v.e[0], t - v.e[1], t - v.e[2]);
+}
+
+template <typename T>
+__host__ __device__ inline vec3<T> operator-(const vec3<T>& v, T t) {
+    return vec3(t - v.e[0], t - v.e[1], t - v.e[2]);
+}
+
+template <typename T>
 __host__ __device__ inline vec3<T> operator*(T t, const vec3<T>& v) {
+    return vec3(t * v.e[0], t * v.e[1], t * v.e[2]);
+}
+
+template <typename T>
+__host__ __device__ inline vec3<T> operator*(const vec3<T>& v, T t) {
     return vec3(t * v.e[0], t * v.e[1], t * v.e[2]);
 }
 
 template <typename T>
 __host__ __device__ inline vec3<T> operator/(vec3<T> v, T t) {
     return vec3(v.e[0] / t, v.e[1] / t, v.e[2] / t);
-}
-
-template <typename T>
-__host__ __device__ inline vec3<T> operator*(const vec3<T>& v, T t) {
-    return vec3(t * v.e[0], t * v.e[1], t * v.e[2]);
 }
 
 template <typename T>
