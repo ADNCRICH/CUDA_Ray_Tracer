@@ -34,9 +34,21 @@ class vec3 {
     __host__ __device__ inline vec3& operator*=(const T t);
     __host__ __device__ inline vec3& operator/=(const T t);
 
+    __host__ __device__ inline vec3& operator=(const vec3<T>& other) = default;
+
     __host__ __device__ inline T length() const { return sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]); }
     __host__ __device__ inline T squared_length() const { return e[0] * e[0] + e[1] * e[1] + e[2] * e[2]; }
     __host__ __device__ inline void make_unit_vector();
+
+    template <typename U>
+    __host__ __device__ inline vec3<T>& operator=(const vec3<U>& other) {
+        static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<U>::value, "T and U must be arithmetic types");
+
+        e[0] = const_cast<vec3<U>&>(other).e[0];
+        e[1] = const_cast<vec3<U>&>(other).e[1];
+        e[2] = const_cast<vec3<U>&>(other).e[2];
+        return *this;
+    }
 
     T e[3];
 };

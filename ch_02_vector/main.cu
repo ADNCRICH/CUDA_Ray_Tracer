@@ -16,11 +16,12 @@ void check_cuda(cudaError_t result, char const *const func, const char *const fi
     }
 }
 
-__global__ void image(vec3<uint8_t> *output, int X, int Y) {
+template <typename out_t>
+__global__ void image(vec3<out_t> *output, int X, int Y) {
     int x = blockDim.x * blockIdx.x + threadIdx.x;
     int y = blockDim.y * blockIdx.y + threadIdx.y;
-    if (x >= X | y >= Y) return;
-    output[y * X + x] = vec3<uint8_t>(255.99 * float(x) / float(X), 255.99 * float(Y - y - 1) / float(Y), 255.99 * 0.2);
+    if (x >= X || y >= Y) return;
+    output[y * X + x] = vec3<out_t>(255.99 * float(x) / float(X), 255.99 * float(Y - y - 1) / float(Y), 255.99 * 0.2);
 }
 
 int main() {
