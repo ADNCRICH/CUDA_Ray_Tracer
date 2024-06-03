@@ -45,6 +45,15 @@ __global__ void render(vec3<O> *output, int X, int Y, vec3<T> lower_left, vec3<T
     output[y * X + x] = color(r, world) * 255.99;
 }
 
+template <typename T>
+__global__ void free_mem(hitable<T> **world) {
+    if (blockIdx.x == 0 && threadIdx.x == 0) {
+        for (int i = 0; i < (**((hitable_list<T> **)world)).list_size; i++)
+            delete (**(hitable_list<T> **)world).list[i];
+        delete *world;
+    }
+}
+
 int main() {
     int nx = 2000, ny = 1000;
     int thread_size = 16;
@@ -77,4 +86,10 @@ int main() {
     cerr << "took " << timer_seconds << " seconds.\n";
 
     stbi_write_jpg("sphere_world.jpg", nx, ny, 3, output, 100);
+
+    free_mem<<<1, 1>>>(world);  // Free memory on CPU
+
+    checkCudaErrors(cudaFree(output));  // Free memory on GPU
+    checkCudaErrors(cudaFree(list));
+    checkCudaErrors(cudaFree(world));
 }
