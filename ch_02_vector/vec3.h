@@ -9,7 +9,11 @@
 template <typename T>
 class vec3 {
    public:
-    __host__ __device__ vec3() {}
+    __host__ __device__ vec3() {
+        e[0] = T(0);
+        e[1] = T(0);
+        e[2] = T(0);
+    }
     __host__ __device__ vec3(T e0, T e1, T e2) {
         e[0] = T(e0);
         e[1] = T(e1);
