@@ -1,14 +1,14 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-__global__ void add_one_thread(int n, float *x, float *y) {
+__global__ void add_one_block(int n, float *x, float *y) {
     int this_thread = threadIdx.x;  // current thread index = [0, second number]
     int blockSize = blockDim.x;     // number of all thread in this block = second number
     for (int i = this_thread; i < n; i += blockSize)
         y[i] = x[i] + y[i];
 }
 
-__global__ void add_block_thread(int n, float *x, float *y) {
+__global__ void add_multi_block(int n, float *x, float *y) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;     // gridDim.x is number of block defined by first number
     for (int i = index; i < n; i += stride)  // loop [factor] times
@@ -33,12 +33,12 @@ int main() {
         x[i] = 1.0f,
         y[i] = 2.0f;
 
-    add_one_thread<<<1, 256>>>(N, x, y);
+    add_one_block<<<1, 256>>>(N, x, y);
 
     int block_size = 256;                                        // number of thread in each block
     int num_block = (N + block_size - 1) / block_size / factor;  // round up number of block to support all workload
 
-    add_block_thread<<<num_block, block_size>>>(N, x, y);
+    add_multi_block<<<num_block, block_size>>>(N, x, y);
 
     cudaDeviceSynchronize();
 
