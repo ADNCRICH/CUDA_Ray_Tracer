@@ -15,8 +15,6 @@ void check_cuda(cudaError_t result, char const *const func, const char *const fi
     }
 }
 
-// sorry for my sucky english, but I'll try my best to explain this
-
 // sphere radius R, center at C
 // (x-xc) * (x-xc) + (y-yc) * (y-yc) + (z-zc) * (z-zc) = R*R, P = (x, y, z), C = (xc, yc, zc)
 // (P-C)•(P-C) = R*R

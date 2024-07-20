@@ -4,7 +4,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "../ch_05_normal_map/hitable_list.h"
 #include "../ch_05_normal_map/sphere.h"
-#include "camera.h"
+#include "../ch_06_antialiasing/camera.h"
 #include "stb_image_write.h"
 using namespace std;
 
@@ -34,6 +34,7 @@ __global__ void init_random(int X, int Y, curandState *rand_state) {
     int idx = X * y + x + X * Y * blockIdx.z;
     // int idx = X * y + x;
     curand_init(1230123 + idx, 0, 0, &rand_state[idx]);  // each pixel use same seed but different sequence
+    // curand_init(1984, idx, 0, &rand_state[idx]);
 }
 
 template <typename O, typename T>
@@ -48,21 +49,40 @@ __global__ void render(vec3<O> *output, int X, int Y, int sample, camera<T> **ca
         T u = T(x + curand_uniform_double(&current_rand_state)) / T(X);
         T v = T(Y - y - 1 + curand_uniform_double(&current_rand_state)) / T(Y);
         ray<T> r = (*cam)->get_ray(u, v);
-        out_color += color(r, world);
+        out_color += color(r, world, &current_rand_state);
     }
 
     output[X * y + x] += out_color / (T)sample * 255.99;  // Remove Denominator(sample) and magic would happen
 }
 
+template<typename T>
+__device__ vec3<T> random_in_unit_sphere(curandState* rand_state){
+    vec3<T> p;
+    do{
+        p = 2.0 * vec3<T>(curand_uniform_double(rand_state),curand_uniform_double(rand_state),curand_uniform_double(rand_state)) - vec3<T>(1, 1, 1);
+    } while(p.squared_length() >= 1.0); // reject untill got vector in sphere
+    return p;
+}
+
 template <typename T>
-__device__ vec3<T> color(ray<T> &r, hitable<T> **world) {
+__device__ vec3<T> color(ray<T> &r, hitable<T> **world, curandState *rand_state) {
+    // if (state > 3) return vec3<T>(0, 0, 0); // exceed depth limit
     hit_record<T> temp;
-    if ((*world)->hit(r, 0, DBL_MAX, temp))
-        return temp.normal * 0.5 + 0.5;
-    else {
-        T t = unit_vector(r.direction()).y() * 0.5 + 0.5;
-        return (1 - t) * vec3<T>(1, 1, 1) + t * vec3<T>(0.5, 0.7, 1);
+    ray<T> reflect_ray = r;
+    T attenuation = 1.0, decay = 0.5;
+    for(int i = 0; i < 50; i++){
+        if ((*world)->hit(reflect_ray, 0, DBL_MAX, temp)){
+            vec3<T> reflect = random_in_unit_sphere<T>(rand_state) + temp.normal; // shift sphere center at ray hitting point by normal of surface
+            reflect_ray = ray<T>(temp.p, reflect);
+            attenuation *= decay;
+            // return 0.5 * color(reflect_ray, world, rand_state); // recursive cause stack overflow
+        }
+        else {
+            T t = unit_vector(r.direction()).y() * 0.5 + 0.5;
+            return ((1 - t) * vec3<T>(1, 1, 1) + t * vec3<T>(0.5, 0.7, 1)) * attenuation;
+        }
     }
+    return vec3<T>(0, 0, 0); // exceed loop limit
 }
 
 template <typename T>
@@ -77,7 +97,7 @@ __global__ void free_mem(hitable<T> **world, camera<T> **cam) {
 
 int main() {
     int nx = 2000, ny = 1000;
-    int thread_size = 8;
+    int thread_size = 16;
     int ns = 100;  // number of sampling for anti-aliasing
     clock_t st, ed;
 
@@ -121,7 +141,7 @@ int main() {
     for (int i = 0; i < nx * ny; i++)
         output[i] = output_t[i];
 
-    stbi_write_jpg("sphere_world.jpg", nx, ny, 3, output, 100);
+    stbi_write_jpg("Diffuse_Material.jpg", nx, ny, 3, output, 100);
 
     free_mem<<<1, 1>>>(world, cam);  // Free memory on CPU
 

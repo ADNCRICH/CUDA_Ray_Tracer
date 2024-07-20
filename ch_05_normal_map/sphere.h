@@ -24,14 +24,14 @@ __device__ bool sphere<T>::hit(const ray<T>& r, T t_min, T t_max, hit_record<T>&
         if (t_min < temp && temp < t_max) {  // hit entry point (front side)
             rec.t = temp;
             rec.p = r.point_at_parameter(temp);
-            rec.normal = (rec.p - center) / radius;
+            rec.normal = (rec.p - center) / radius; // normalize
             return true;
         }
         temp = (-b + sqrt(tt)) / a;
         if (t_min < temp && temp < t_max) {  // hit exit point (back side)
             rec.t = temp;
             rec.p = r.point_at_parameter(temp);
-            rec.normal = (rec.p - center) / radius;
+            rec.normal = (rec.p - center) / radius; // normalize
             return true;
         }
     }

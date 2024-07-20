@@ -17,3 +17,12 @@ Result of each chapter in the ebook `"Ray Tracing in One Weekend"` by `Peter Shi
 ## Spheres with Normal Map
 
 ![Spheres with Normal Map](./ch_05_normal_map/sphere_world.jpg)
+
+## Diffuse Material
+![Diffuse Material](./ch_07_diffuse_material/Diffuse_Material.jpg)
+
+# Debugging Tools
+
+* **compute-sanitizer** [path/to/cuda_executable]
+* **cuda-gdb** [path/to/cuda_executable] + run [args]
+* [**demangler**](http://demangler.com/) - just put GCC symbol name and get demangled name
