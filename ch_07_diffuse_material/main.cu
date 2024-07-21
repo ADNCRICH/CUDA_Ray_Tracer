@@ -51,8 +51,14 @@ __global__ void render(vec3<O> *output, int X, int Y, int sample, camera<T> **ca
         ray<T> r = (*cam)->get_ray(u, v);
         out_color += color(r, world, &current_rand_state);
     }
+    out_color /= (T)sample;
 
-    output[X * y + x] += out_color / (T)sample * 255.99;  // Remove Denominator(sample) and magic would happen
+    //gamma correction    
+    out_color[0] = sqrt(out_color[0]);
+    out_color[1] = sqrt(out_color[1]);
+    out_color[2] = sqrt(out_color[2]);
+
+    output[X * y + x] += out_color * 255.99;  // Remove Denominator(sample) and magic would happen
 }
 
 template<typename T>
@@ -71,7 +77,7 @@ __device__ vec3<T> color(ray<T> &r, hitable<T> **world, curandState *rand_state)
     ray<T> reflect_ray = r;
     T attenuation = 1.0, decay = 0.5;
     for(int i = 0; i < 50; i++){
-        if ((*world)->hit(reflect_ray, 0, DBL_MAX, temp)){
+        if ((*world)->hit(reflect_ray, 0.001, DBL_MAX, temp)){
             vec3<T> reflect = random_in_unit_sphere<T>(rand_state) + temp.normal; // shift sphere center at ray hitting point by normal of surface
             reflect_ray = ray<T>(temp.p, reflect);
             attenuation *= decay;
