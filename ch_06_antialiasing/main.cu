@@ -75,14 +75,22 @@ __global__ void free_mem(hitable<T> **world, camera<T> **cam) {
     }
 }
 
+template <typename T1, typename T2>
+__global__ void crop_image(int x, int y, int w, int h, int X, int Y, vec3<T1> *data, vec3<T2> *des){
+    int i = blockDim.x * blockIdx.x + threadIdx.x, j = blockDim.y * blockIdx.y + threadIdx.y;
+    if(i < x || i >= x + w || j < y || j >= y + h || x >= X || y >= Y) return;
+    des[(j-y) * w + (i-x)] = data[j * X + i];
+}
+
 int main() {
     int nx = 2000, ny = 1000;
+    int nx_c = 350, ny_c = 215, cx = 900, cy = 600; // crop image
     int thread_size = 8;
     int ns = 100;  // number of sampling for anti-aliasing
     clock_t st, ed;
 
     vec3<double> *output_t;
-    vec3<uint8_t> *output;
+    vec3<uint8_t> *output, *output_c;
     hitable<double> **list, **world;  // hitable is base class for sphere and hitable_list
     camera<double> **cam;
     curandState *rand_state;
@@ -97,6 +105,7 @@ int main() {
     checkCudaErrors(cudaMalloc((void **)&cam, sizeof(camera<double> *)));
     checkCudaErrors(cudaMalloc((void **)&rand_state, nx * ny * sizeof(curandState)));
     checkCudaErrors(cudaMalloc((void **)&rand_state, nx * ny * sizeof(curandState)));
+    checkCudaErrors(cudaMallocManaged((void **)&output_c, nx_c * ny_c * sizeof(vec3<uint8_t>)));
 
     init_world<<<1, 1>>>(list, world, cam);  // since constructor can call only by GPU
     checkCudaErrors(cudaGetLastError());
@@ -113,6 +122,10 @@ int main() {
     render<<<blocks, threads>>>(output_t, nx, ny, ns, cam, world, rand_state);
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaDeviceSynchronize());
+
+    crop_image<<<blocks, threads>>>(cx, cy, nx_c, ny_c, nx, ny, output_t, output_c);
+    checkCudaErrors(cudaGetLastError());
+    checkCudaErrors(cudaDeviceSynchronize());
     ed = clock();
 
     double timer_seconds = ((double)(ed - st)) / CLOCKS_PER_SEC;
@@ -122,6 +135,7 @@ int main() {
         output[i] = output_t[i];
 
     stbi_write_jpg("sphere_world.jpg", nx, ny, 3, output, 100);
+    stbi_write_jpg("sphere_world_cropped.jpg", nx_c, ny_c, 3, output_c, 100);
 
     free_mem<<<1, 1>>>(world, cam);  // Free memory on CPU
 

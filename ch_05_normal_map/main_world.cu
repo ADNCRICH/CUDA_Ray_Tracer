@@ -54,12 +54,20 @@ __global__ void free_mem(hitable<T> **world) {
     }
 }
 
+template <typename T>
+__global__ void crop_image(int x, int y, int w, int h, int X, int Y, vec3<T> *data, vec3<T> *des){
+    int i = blockDim.x * blockIdx.x + threadIdx.x, j = blockDim.y * blockIdx.y + threadIdx.y;
+    if(i < x || i >= x + w || j < y || j >= y + h || x >= X || y >= Y) return;
+    des[(j-y) * w + (i-x)] = data[j * X + i];
+}
+
 int main() {
     int nx = 2000, ny = 1000;
+    int nx_c = 350, ny_c = 215, cx = 900, cy = 600; // crop image
     int thread_size = 16;
     clock_t st, ed;
 
-    vec3<uint8_t> *output;
+    vec3<uint8_t> *output, *output_c;
     hitable<double> **list, **world;  // hitable is base class for sphere and hitable_list
 
     // good practice to use generic pointer (void type)
@@ -68,6 +76,8 @@ int main() {
     // cudaMalloc is used to allocate memory that is accessible only from GPUs
     checkCudaErrors(cudaMalloc((void **)&list, 2 * sizeof(hitable<double> *)));
     checkCudaErrors(cudaMalloc((void **)&world, sizeof(hitable<double> *)));
+
+    checkCudaErrors(cudaMallocManaged((void **)&output_c, nx_c * ny_c * sizeof(vec3<uint8_t>)));
 
     init_world<<<1, 1>>>(list, world);  // since constructor can call only by GPU
     checkCudaErrors(cudaGetLastError());
@@ -80,12 +90,17 @@ int main() {
                                 vec3<double>(0, 2, 0), vec3<double>(0, 0, 0), world);
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaDeviceSynchronize());
+
+    crop_image<<<blocks, threads>>>(cx, cy, nx_c, ny_c, nx, ny, output, output_c);
+    checkCudaErrors(cudaGetLastError());
+    checkCudaErrors(cudaDeviceSynchronize());
     ed = clock();
 
     double timer_seconds = ((double)(ed - st)) / CLOCKS_PER_SEC;
     cerr << "took " << timer_seconds << " seconds.\n";
 
     stbi_write_jpg("sphere_world.jpg", nx, ny, 3, output, 100);
+    stbi_write_jpg("sphere_world_cropped.jpg", nx_c, ny_c, 3, output_c, 100);
 
     free_mem<<<1, 1>>>(world);  // Free memory on CPU
 

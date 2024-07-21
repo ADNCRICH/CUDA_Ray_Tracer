@@ -32,6 +32,7 @@
 *.app
 
 bin/*
+_tmp/*
 *.nsys-rep
 *.sqlite
 
