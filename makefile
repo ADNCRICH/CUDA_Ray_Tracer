@@ -4,9 +4,10 @@ NVCC           = $(CUDA_PATH)/bin/nvcc -ccbin $(HOST_COMPILER)
 
 # select one of these for Debug vs. Release
 # NVCC_DBG       = -g -G
-NVCC_DBG       = -g
+NVCC_DBG       = -g 
 
-NVCCFLAGS      = $(NVCC_DBG) -m64 -O2
+# --ptxas-options=-v for register information
+NVCCFLAGS      = $(NVCC_DBG) -m64
 GENCODE_FLAGS  = -gencode arch=compute_89,code=sm_89
 
 DIR ?= .
