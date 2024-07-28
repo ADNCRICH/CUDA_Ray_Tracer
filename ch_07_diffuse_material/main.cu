@@ -81,7 +81,7 @@ __device__ vec3<T> color(ray<T> &r, hitable<T> **world, curandState *rand_state)
             vec3<T> reflect = random_in_unit_sphere<T>(rand_state) + temp.normal; // shift sphere center at ray hitting point by normal of surface
             reflect_ray = ray<T>(temp.p, reflect);
             attenuation *= decay;
-            // return 0.5 * color(reflect_ray, world, rand_state); // recursive cause stack overflow
+            // return 0.5 * color(reflect_ray, world, rand_state); // recursive cause stack to overflow
         }
         else {
             T t = unit_vector(r.direction()).y() * 0.5 + 0.5;
@@ -156,4 +156,12 @@ int main() {
     checkCudaErrors(cudaFree(world));
     checkCudaErrors(cudaFree(cam));
     checkCudaErrors(cudaFree(rand_state));
+
+    cout << cudaDeviceSetLimit(cudaLimitStackSize, 1024*64) << "\n";
+    size_t stackSize, printfFifoSize, mallocHeapSize;
+    cout << cudaDeviceGetLimit(&stackSize, cudaLimitStackSize) << "\n";
+    cout << cudaDeviceGetLimit(&printfFifoSize, cudaLimitPrintfFifoSize) << "\n";
+    cout << cudaDeviceGetLimit(&mallocHeapSize, cudaLimitMallocHeapSize)<< "\n";
+    cout << "stackSize: " << stackSize << " printfFifoSize: " << printfFifoSize << " mallocHeapSize: " << mallocHeapSize << endl;
+
 }
