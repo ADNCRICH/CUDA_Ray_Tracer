@@ -36,6 +36,9 @@ Result of each chapter in the ebook `"Ray Tracing in One Weekend"` by `Peter Shi
 ## Diffuse Material
 ![Diffuse Material](./ch_07_diffuse_material/Diffuse_Material.jpg)
 
+## Metal Material
+![Metal Material](./ch_08_metal/Metal_Material.jpg)
+
 # Debugging Tools
 
 * **compute-sanitizer** [path/to/cuda_executable]
