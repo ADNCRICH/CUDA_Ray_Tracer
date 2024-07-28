@@ -115,14 +115,14 @@ __host__ __device__ inline vec3<T> operator-(const vec3<T>& v, T t) {
     return vec3(t - v.e[0], t - v.e[1], t - v.e[2]);
 }
 
-template <typename T>
-__host__ __device__ inline vec3<T> operator*(T t, const vec3<T>& v) {
-    return vec3(t * v.e[0], t * v.e[1], t * v.e[2]);
+template <typename T, typename U>
+__host__ __device__ inline vec3<T> operator*(U t, const vec3<T>& v) {
+    return vec3<T>(t * v.e[0], t * v.e[1], t * v.e[2]);
 }
 
-template <typename T>
-__host__ __device__ inline vec3<T> operator*(const vec3<T>& v, T t) {
-    return vec3(t * v.e[0], t * v.e[1], t * v.e[2]);
+template <typename T, typename U>
+__host__ __device__ inline vec3<T> operator*(const vec3<T>& v, U t) {
+    return vec3<T>(t * v.e[0], t * v.e[1], t * v.e[2]);
 }
 
 template <typename T>
