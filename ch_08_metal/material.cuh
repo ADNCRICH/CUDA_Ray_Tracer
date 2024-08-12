@@ -41,16 +41,15 @@ class lambertian : public material<T> {
 template <typename T>
 class metal : public material<T> {
    public:
-    __device__ metal(const vec3<T>& a, float f) : albedo(a) { fuzz = min(f, 1.0); }
-    __device__ virtual bool scatter(const ray<T>& r_in, const hit_record<T>& rec, vec3<T>& attenuation, ray<T>& scattered, curandState* rans_state) const {
+    __device__ metal(const vec3<T>& a, T f) : albedo(a) { fuzz = min(max(f, 0.0), 1.0); }
+    __device__ virtual bool scatter(const ray<T>& r_in, const hit_record<T>& rec, vec3<T>& attenuation, ray<T>& scattered, curandState* rand_state) const {
         vec3<T> reflected = reflect(unit_vector(r_in.direction()), rec.normal);
-        scattered = ray(rec.p, reflected);
+        scattered = ray<T>(rec.p, reflected + fuzz * random_in_unit_sphere<T>(rand_state));
         attenuation = albedo;
-        return dot(reflected, rec.normal) > 0;
+        return dot(scattered.direction(), rec.normal) > 0;
     }
-
     vec3<T> albedo;
-    float fuzz;
+    T fuzz;
 };
 
 #endif

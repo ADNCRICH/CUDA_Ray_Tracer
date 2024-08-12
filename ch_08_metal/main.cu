@@ -23,9 +23,9 @@ template <typename T>
 __global__ void init_world(hitable<T> **list, hitable<T> **world, camera<T> **cam) {
     if (threadIdx.x == 0 && blockIdx.x == 0) {  // init only once!
         list[0] = new sphere<T>(vec3<T>(0, 0, -1), 0.5, new lambertian<T>(vec3<T>(0.8, 0.3, 0.3)));
-        list[1] = new sphere<T>(vec3<T>(0, -100.5, -1), 100, new lambertian<T>(vec3<T>(0.8, 0.8, 0.8)));
+        list[1] = new sphere<T>(vec3<T>(0, -100.5, -1), 100, new lambertian<T>(vec3<T>(0.8, 0.8, 0.0)));
         list[2] = new sphere<T>(vec3<T>(1, 0, -1), 0.5, new metal<T>(vec3<T>(0.8, 0.6, 0.2), 1.0));
-        list[3] = new sphere<T>(vec3<T>(-1, 0, -1), 0.5, new metal<T>(vec3<T>(0.8, 0.8, 0.8), 1.0));
+        list[3] = new sphere<T>(vec3<T>(-1, 0, -1), 0.5, new metal<T>(vec3<T>(0.8, 0.8, 0.8), 0.3));
         *world = new hitable_list<T>(list, 4);
         *cam = new camera<T>();
     }
@@ -71,7 +71,7 @@ __device__ vec3<T> color(ray<T> &r, hitable<T> **world, curandState *rand_state)
     ray<T> curr_ray = r;
     vec3<T> curr_attenuation = vec3<T>(1.0, 1.0, 1.0);
     for (int i = 0; i < 50; i++) {
-        if ((*world)->hit(curr_ray, 0.001, DBL_MAX, rec)) {
+        if ((*world)->hit(curr_ray, 0.001, FLT_MAX, rec)) {
             ray<T> scattered;
             vec3<T> attenuation;
             if (rec.material_ptr->scatter(curr_ray, rec, attenuation, scattered, rand_state)) {
@@ -101,8 +101,8 @@ __global__ void free_mem(hitable<T> **world, camera<T> **cam) {
 int main() {
     // cout << cudaDeviceSetLimit(cudaLimitStackSize, 1024*64) << "\n";
     int nx = 2000, ny = 1000;
-    int thread_size = 16;
-    int ns = 100;  // number of sampling for anti-aliasing
+    int thread_size = 8;
+    int ns = 1600;  // number of sampling for anti-aliasing
     clock_t st, ed;
 
     using comp_t = float;

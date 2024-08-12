@@ -42,5 +42,5 @@ Result of each chapter in the ebook `"Ray Tracing in One Weekend"` by `Peter Shi
 # Debugging Tools
 
 * **compute-sanitizer** [path/to/cuda_executable]
-* **cuda-gdb** [path/to/cuda_executable] + run [args]
+* **cuda-gdb** [path/to/cuda_executable] + run [args] / break [line or function] / bt (backtrace) / frame [frame idx from bt] / print ((@global T*)variable)[idx]
 * [**demangler**](http://demangler.com/) - just put GCC symbol name and get demangled name
